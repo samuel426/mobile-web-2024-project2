@@ -139,21 +139,30 @@ def run(
 
         detected_classes = [0] * len(names)
         labels_to_draw = []
+
         for det in pred:
+            labels_to_draw.clear()  # 매 프레임마다 초기화
             if len(det):
                 for *xyxy, conf, cls in det:
-                    detected_classes[int(cls)] = 1
-                    # 좌표와 레이블 저장
-                    labels_to_draw.append((names[int(cls)], xyxy))
+                    detected_classes[int(cls)] += 1  # 감지된 클래스 수 증가
+                    labels_to_draw.append((names[int(cls)], xyxy))  # 레이블 추가
 
-        print("Detected classes:", detected_classes)
-        cd.add(names, detected_classes, save_dir, im0s, labels_to_draw)
+            # 현재 프레임에서 실제 감지된 객체의 개수 계산
+            detected_count = len(det)  # det는 현재 프레임의 모든 감지 결과
+            detected_class_names = ', '.join(set([label[0] for label in labels_to_draw]))
+
+            # 로그 출력
+            print(f"Detected Classes: {detected_class_names}")
+            print(f"Detected Count: {detected_count}")
+
+            # ChangeDetection 업데이트
+            cd.add(names, detected_classes, save_dir, im0s, labels_to_draw, detected_class_names, detected_count)
+
 
         if view_img:
             cv2.imshow(str(path), im0s)
             cv2.waitKey(1)
-        
-        break  # 루프 종료: 첫 번째 프레임 처리 후 반복 중단
+
 
 
 
